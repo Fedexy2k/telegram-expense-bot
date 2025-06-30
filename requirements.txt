@@ -21,3 +21,8 @@ requests-oauthlib==2.0.0
 rsa==4.9.1
 sniffio==1.3.1
 urllib3==2.5.0
+python-telegram-bot
+gspread
+google-auth-oauthlib
+pandas
+python-dotenv
