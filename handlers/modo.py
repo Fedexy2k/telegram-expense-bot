@@ -4,16 +4,8 @@ from telegram.ext import ContextTypes, ConversationHandler
 CAMBIAR_MODO = 6
 
 async def cambiar_modo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    query = update.callback_query
-    if query:
-        await query.answer()
-        chat_id = query.message.chat_id
-        user_id = query.from_user.id
-    else:
-        chat_id = update.message.chat_id
-        user_id = update.effective_user.id
-        
     bot = context.bot_data['bot']
+    user_id = update.effective_user.id
     modo_actual = bot.get_user_mode(user_id)
     nombre_actual = bot.get_mode_name(user_id)
 
@@ -24,10 +16,8 @@ async def cambiar_modo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     keyboard.append(['❌ Cancelar'])
 
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=f"🎭 *Cambio de Personalidad*\n\nModo actual: {nombre_actual}\n\nSelecciona tu nuevo modo:",
+    await update.message.reply_text(
+        f"🎭 *Cambio de Personalidad*\n\nModo actual: {nombre_actual}\n\nSelecciona tu nuevo modo:",
         reply_markup=reply_markup,
         parse_mode='Markdown'
     )

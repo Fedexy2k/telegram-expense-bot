@@ -7,7 +7,6 @@ from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria
 from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
 from handlers.modo import cambiar_modo, procesar_cambio_modo
 from handlers.resumen import generar_resumen
-from telegram.ext import CallbackQueryHandler # Importa el manejador de callbacks
 
 DESCRIPCION, CATEGORIA, MONTO, METODO_PAGO = range(4)
 GASTO_RAPIDO, METODO_PAGO_RAPIDO = range(2)
@@ -20,7 +19,6 @@ def main():
     TOKEN = os.getenv('BOT_TOKEN')
     if not TOKEN:
         logger.error("❌ BOT_TOKEN no configurado!")
-        print("❌ Error: Necesitas configurar la variable BOT_TOKEN")
         return
 
     logger.info("🔧 Iniciando bot modularizado...")
@@ -32,12 +30,9 @@ def main():
         application = Application.builder().token(TOKEN).build()
         application.bot_data['bot'] = bot
 
-        # Handler: gasto paso a paso (ahora con CallbackQueryHandler)
+        # Handler: gasto paso a paso
         gasto_handler = ConversationHandler(
-            entry_points=[
-                CommandHandler('gasto', iniciar_gasto),
-                CallbackQueryHandler(iniciar_gasto, pattern='^/gasto$')
-            ],
+            entry_points=[CommandHandler('gasto', iniciar_gasto)],
             states={
                 DESCRIPCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_descripcion)],
                 CATEGORIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_categoria)],
@@ -47,12 +42,9 @@ def main():
             fallbacks=[]
         )
 
-        # Handler: gasto rápido (ahora con CallbackQueryHandler)
+        # Handler: gasto rápido
         rapido_handler = ConversationHandler(
-            entry_points=[
-                CommandHandler('rapido', iniciar_gasto_rapido),
-                CallbackQueryHandler(iniciar_gasto_rapido, pattern='^/rapido$')
-            ],
+            entry_points=[CommandHandler('rapido', iniciar_gasto_rapido)],
             states={
                 GASTO_RAPIDO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_gasto_rapido)],
                 METODO_PAGO_RAPIDO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_metodo_pago_rapido)],
@@ -60,12 +52,9 @@ def main():
             fallbacks=[]
         )
 
-        # Handler: cambio de modo (ahora con CallbackQueryHandler)
+        # Handler: cambio de modo
         modo_handler = ConversationHandler(
-            entry_points=[
-                CommandHandler('modo', cambiar_modo),
-                CallbackQueryHandler(cambiar_modo, pattern='^/modo$')
-            ],
+            entry_points=[CommandHandler('modo', cambiar_modo)],
             states={
                 CAMBIAR_MODO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_cambio_modo)],
             },
@@ -77,22 +66,17 @@ def main():
         application.add_handler(rapido_handler)
         application.add_handler(modo_handler)
 
-        # Comandos simples (que no son conversaciones)
+        # Comandos simples
         application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("🤖 Bot iniciado.")))
-        application.add_handler(CommandHandler("help", lambda u, c: u.message.reply_text("Comandos disponibles: /gasto /rapido /modo")))
-        
-        # Handlers para el comando /resumen (escrito y por botón)
         application.add_handler(CommandHandler("resumen", generar_resumen))
-        application.add_handler(CallbackQueryHandler(generar_resumen, pattern='^/resumen$'))
+        application.add_handler(CommandHandler("help", lambda u, c: u.message.reply_text("Comandos disponibles: /gasto /rapido /resumen /modo")))
+
 
         logger.info("🚀 Bot listo y corriendo...")
         application.run_polling()
 
+    # --- ESTE ES EL BLOQUE QUE FALTABA ---
     except Exception as e:
         logger.error(f"❌ Error al iniciar el bot: {e}")
-        print(f"❌ Error al iniciar el bot: {e}")
         import traceback
         traceback.print_exc()
-
-if __name__ == '__main__':
-    main()

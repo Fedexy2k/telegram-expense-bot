@@ -5,21 +5,12 @@ from datetime import datetime
 DESCRIPCION, CATEGORIA, MONTO, METODO_PAGO = range(4)
 
 async def iniciar_gasto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    query = update.callback_query
-    if query:
-        await query.answer()
-        chat_id = query.message.chat_id
-        user_id = query.from_user.id
-    else:
-        chat_id = update.message.chat_id
-        user_id = update.effective_user.id
-
+    user_id = update.effective_user.id
     bot = context.bot_data['bot']
     mensaje_personalizado = bot.get_message(user_id, 'start_gasto')
 
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=f"{mensaje_personalizado}\n\nIngresa una descripción para tu gasto:",
+    await update.message.reply_text(
+        f"{mensaje_personalizado}\n\nIngresa una descripción para tu gasto:",
         reply_markup=ReplyKeyboardRemove()
     )
     return DESCRIPCION
@@ -85,25 +76,14 @@ async def recibir_metodo_pago(update: Update, context: ContextTypes.DEFAULT_TYPE
     fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
     mensaje_personalizado = bot.get_message(user_id, 'success_gasto')
 
-# Creamos el menú de botones
-    keyboard = [
-        [
-            InlineKeyboardButton("Nuevo Gasto", callback_data="/gasto"),
-            InlineKeyboardButton("Gasto Rápido", callback_data="/rapido"),
-        ],
-        [
-            InlineKeyboardButton("Ver Resumen", callback_data="/resumen"),
-            InlineKeyboardButton("Cambiar Modo", callback_data="/modo"),
-        ],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    # Añadimos el reply_markup al mensaje final
-    await update.message.reply_text(
+    # Mensaje final SIN botones
+    texto_final = (
         f"✅ ¡Gasto registrado!\n\n"
-        f"📅 {fecha}\n📝 {desc}\n📂 {cat}\n💰 {bot.formatear_pesos(monto)}\n💳 {metodo}\n\n{mensaje_personalizado}\n\n*¿Qué vas a hacer ahora?*",
-        reply_markup=reply_markup,
-        parse_mode='Markdown'
+        f"📅 {fecha}\n📝 {desc}\n📂 {cat}\n💰 {bot.formatear_pesos(monto)}\n💳 {metodo}\n\n"
+        f"{mensaje_personalizado}\n\n"
+        "Para continuar, usa: /gasto, /rapido, /resumen, /modo"
     )
+    await update.message.reply_text(texto_final, reply_markup=ReplyKeyboardRemove())
+    
     context.user_data.clear()
     return ConversationHandler.END

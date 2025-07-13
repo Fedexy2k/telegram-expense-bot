@@ -12,13 +12,7 @@ from datetime import datetime
 import locale
 
 async def generar_resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    if query:
-        await query.answer()
-        chat_id = query.message.chat_id
-    else:
-        chat_id = update.message.chat_id
-
+    chat_id = update.message.chat_id
     bot = context.bot_data['bot']
     
     try:
@@ -65,31 +59,11 @@ async def generar_resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         mensaje += "\n---------------------\n"
         mensaje += f"*Total Gastado:* `{bot.formatear_pesos(total_gastado)}`"
-        mensaje += "\n\n*¿Qué más quieres hacer?*"
-
-        keyboard = [
-            [
-                InlineKeyboardButton("Nuevo Gasto", callback_data="/gasto"),
-                InlineKeyboardButton("Gasto Rápido", callback_data="/rapido"),
-            ],
-            [
-                InlineKeyboardButton("Ver Resumen", callback_data="/resumen"),
-                InlineKeyboardButton("Cambiar Modo", callback_data="/modo"),
-            ],
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        # --- LÍNEA CORREGIDA ---
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=mensaje,
-            parse_mode='Markdown',
-            reply_markup=reply_markup
-        )
+        mensaje += "\n\nPara continuar, usa: /gasto, /rapido, /resumen, /modo"
+        await context.bot.send_message(chat_id=chat_id, text=mensaje, parse_mode='Markdown')
 
     except Exception as e:
         print(f"Error al generar resumen: {e}")
-        # --- LÍNEA CORREGIDA ---
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"❌ ¡Ups! Hubo un error al generar tu resumen.\nError: {e}"
