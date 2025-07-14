@@ -4,13 +4,32 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from bot import ExpenseBot
-from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_monto, recibir_metodo_pago
-from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
-from handlers.ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
-from handlers.modo import cambiar_modo, procesar_cambio_modo
-from handlers.resumen import generar_resumen
-from handlers.recordatorios import RecordatorioManager
-from handlers.configuracion import toggle_recordatorios, configurar_presupuesto
+
+# OPCIÓN 1: Si tienes los archivos en la carpeta handlers/ (estructura recomendada)
+try:
+    from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_monto, recibir_metodo_pago
+    from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
+    from handlers.ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
+    from handlers.modo import cambiar_modo, procesar_cambio_modo
+    from handlers.resumen import generar_resumen
+    from handlers.recordatorios import RecordatorioManager
+    from handlers.configuracion import toggle_recordatorios, configurar_presupuesto
+except ImportError:
+    # OPCIÓN 2: Si los archivos están en el directorio raíz
+    print("⚠️  Archivos no encontrados en handlers/, buscando en directorio raíz...")
+    try:
+        from gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_monto, recibir_metodo_pago
+        from rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
+        from ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
+        from modo import cambiar_modo, procesar_cambio_modo
+        from resumen import generar_resumen
+        from recordatorios import RecordatorioManager
+        from configuracion import toggle_recordatorios, configurar_presupuesto
+    except ImportError as e:
+        print(f"❌ Error importando módulos: {e}")
+        print("💡 Verifica que todos los archivos existan en el directorio correcto")
+        exit(1)
+
 from datetime import datetime
 
 # Estados de conversación
