@@ -32,6 +32,13 @@ logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("telegram.ext").setLevel(logging.INFO)
 
+
+async def post_init(application: Application):
+    """Tareas que se ejecutan después de que el bot se inicializa pero antes de que empiece a recibir mensajes."""
+    # Inicializar y arrancar el sistema de recordatorios
+    recordatorio_manager = RecordatorioManager(application)
+    application.create_task(recordatorio_manager.loop_recordatorios())
+
 # Función para cancelar conversaciones
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -135,7 +142,7 @@ def main():
         bot = ExpenseBot()
         logger.info("✅ Bot creado exitosamente")
 
-        application = Application.builder().token(TOKEN).build()
+        application = Application.builder().token(TOKEN).post_init(post_init).build()
         application.bot_data['bot'] = bot
 
         # Inicializar sistema de recordatorios
@@ -198,9 +205,6 @@ def main():
 
         logger.info("🚀 Bot listo y corriendo...")
         logger.info("🔗 Iniciando polling...")
-        
-        # Iniciar sistema de recordatorios
-        application.create_task(recordatorio_manager.loop_recordatorios())
         
         application.run_polling()
 
