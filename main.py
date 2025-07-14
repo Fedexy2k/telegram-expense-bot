@@ -1,6 +1,8 @@
 import os
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler
+from telegram import Update, ReplyKeyboardRemove
+from telegram.ext import ContextTypes
 from bot import ExpenseBot
 from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_monto, recibir_metodo_pago
 from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
@@ -14,7 +16,16 @@ CAMBIAR_MODO = 6
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("telegram.ext").setLevel(logging.DEBUG)
+logging.getLogger("telegram.ext").setLevel(logging.INFO)  # Cambiar a INFO para menos spam
+
+# Función para cancelar conversaciones
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "❌ Operación cancelada. Puedes usar: /gasto, /rapido, /resumen, /modo",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    context.user_data.clear()
+    return ConversationHandler.END
 
 def main():
     TOKEN = os.getenv('BOT_TOKEN')
@@ -23,7 +34,7 @@ def main():
         return
 
     logger.info("🔧 Iniciando bot modularizado...")
-    logger.info(f"Token configurado: {TOKEN[:10]}...")  # Solo mostrar primeros 10 chars
+    logger.info(f"Token configurado: {TOKEN[:10]}...")
 
     try:
         bot = ExpenseBot()
@@ -41,7 +52,7 @@ def main():
                 MONTO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_monto)],
                 METODO_PAGO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_metodo_pago)],
             },
-            fallbacks=[]
+            fallbacks=[CommandHandler('cancel', cancel)]
         )
 
         # Handler: gasto rápido
@@ -51,7 +62,7 @@ def main():
                 GASTO_RAPIDO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_gasto_rapido)],
                 METODO_PAGO_RAPIDO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_metodo_pago_rapido)],
             },
-            fallbacks=[]
+            fallbacks=[CommandHandler('cancel', cancel)]
         )
 
         # Handler: cambio de modo
@@ -60,7 +71,7 @@ def main():
             states={
                 CAMBIAR_MODO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_cambio_modo)],
             },
-            fallbacks=[]
+            fallbacks=[CommandHandler('cancel', cancel)]
         )
 
         # Registro de handlers
@@ -71,7 +82,8 @@ def main():
         # Comandos simples
         application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("🤖 Bot iniciado.")))
         application.add_handler(CommandHandler("resumen", generar_resumen))
-        application.add_handler(CommandHandler("help", lambda u, c: u.message.reply_text("Comandos disponibles: /gasto /rapido /resumen /modo")))
+        application.add_handler(CommandHandler("help", lambda u, c: u.message.reply_text("Comandos disponibles: /gasto /rapido /resumen /modo /cancel")))
+        application.add_handler(CommandHandler("cancel", cancel))
 
         logger.info("🚀 Bot listo y corriendo...")
         logger.info("🔗 Iniciando polling...")
@@ -82,6 +94,5 @@ def main():
         import traceback
         traceback.print_exc()
 
-# ¡ESTO ES LO QUE FALTABA!
 if __name__ == "__main__":
     main()
