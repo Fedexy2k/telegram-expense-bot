@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 6. Definir el comando que se ejecutará cuando el contenedor inicie
-CMD ["python", "main.py"]
+CMD ["sh", "-c", "echo '--- Listando archivos ---' && ls -la && echo '--- Mostrando variables de entorno ---' && printenv && echo '--- Ejecutando bot ---' && python main.py"]
