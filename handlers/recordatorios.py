@@ -11,9 +11,6 @@ class RecordatorioManager:
         self.timezone = pytz.timezone('America/Argentina/Buenos_Aires')
         self.recordatorios_activos = {}
         
-    async def iniciar_recordatorios(self):
-        """Inicia el sistema de recordatorios"""
-        asyncio.create_task(self.loop_recordatorios())
     
     async def loop_recordatorios(self):
         """Loop principal para enviar recordatorios"""

@@ -200,7 +200,7 @@ def main():
         logger.info("🔗 Iniciando polling...")
         
         # Iniciar sistema de recordatorios
-        application.create_task(recordatorio_manager.iniciar_recordatorios())
+        application.create_task(recordatorio_manager.loop_recordatorios())
         
         application.run_polling()
 
