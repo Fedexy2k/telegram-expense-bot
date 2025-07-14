@@ -1,7 +1,9 @@
+# bot.py
 import logging
 import gspread
 import os
 import json
+import base64  # <--- IMPORTANTE
 from google.oauth2.service_account import Credentials
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler
@@ -14,9 +16,13 @@ class ExpenseBot:
     def __init__(self):
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
         if os.getenv('GOOGLE_CREDENTIALS'):
-            creds_info = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
+            # Decodifica la credencial desde Base64
+            b64_creds = os.getenv('GOOGLE_CREDENTIALS')
+            decoded_creds_json = base64.b64decode(b64_creds).decode('utf-8')
+            creds_info = json.loads(decoded_creds_json)
             creds = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
         else:
+            # Lógica para correr localmente
             SERVICE_ACCOUNT_FILE = 'credenciales.json'
             creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
