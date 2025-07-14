@@ -6,46 +6,18 @@ from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from bot import ExpenseBot
 
-# DEBUG: Verificar directorio y archivos
-print(f"🔍 Directorio actual: {os.getcwd()}")
-print(f"🔍 Archivos en directorio actual: {os.listdir('.')}")
+# FIX: Asegurar que el directorio de trabajo sea correcto
+current_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(current_dir)
+sys.path.insert(0, current_dir)
 
-if os.path.exists('handlers'):
-    print(f"🔍 Archivos en handlers/: {os.listdir('handlers')}")
-else:
-    print("❌ La carpeta handlers/ no existe!")
-
-# Agregar directorio actual al path
-sys.path.insert(0, os.getcwd())
-
-# OPCIÓN 1: Si tienes los archivos en la carpeta handlers/ (estructura recomendada)
-try:
-    print("🔍 Intentando importar desde handlers/...")
-    from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_monto, recibir_metodo_pago
-    from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
-    from handlers.ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
-    from handlers.modo import cambiar_modo, procesar_cambio_modo
-    from handlers.resumen import generar_resumen
-    from handlers.recordatorios import RecordatorioManager
-    from handlers.configuracion import toggle_recordatorios, configurar_presupuesto
-    print("✅ Importación desde handlers/ exitosa!")
-except ImportError as e:
-    print(f"❌ Error importando desde handlers/: {e}")
-    # OPCIÓN 2: Si los archivos están en el directorio raíz
-    print("⚠️  Archivos no encontrados en handlers/, buscando en directorio raíz...")
-    try:
-        from gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_monto, recibir_metodo_pago
-        from rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
-        from ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
-        from modo import cambiar_modo, procesar_cambio_modo
-        from resumen import generar_resumen
-        from recordatorios import RecordatorioManager
-        from configuracion import toggle_recordatorios, configurar_presupuesto
-        print("✅ Importación desde directorio raíz exitosa!")
-    except ImportError as e:
-        print(f"❌ Error importando módulos: {e}")
-        print("💡 Verifica que todos los archivos existan en el directorio correcto")
-        exit(1)
+# Importaciones directas con nombres en minúsculas
+from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_monto, recibir_metodo_pago
+from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
+from handlers.ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
+from handlers.modo import cambiar_modo, procesar_cambio_modo
+from handlers.resumen import generar_resumen
+from handlers.recordatorios import RecordatorioManager
 
 from datetime import datetime
 
@@ -107,6 +79,7 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
     user_id = update.effective_user.id
 
     if metodo not in ['💵 Efectivo', '💳 Débito']:
+        from telegram import ReplyKeyboardMarkup
         reply_markup = ReplyKeyboardMarkup(bot.metodos_pago, one_time_keyboard=True, resize_keyboard=True)
         await update.message.reply_text("❌ Método no válido. Seleccioná uno correcto:", reply_markup=reply_markup)
         return METODO_PAGO
@@ -141,6 +114,13 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
     
     context.user_data.clear()
     return ConversationHandler.END
+
+# Funciones placeholder para configuración (hasta que tengas el archivo)
+async def toggle_recordatorios(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🔔 Funcionalidad de recordatorios en desarrollo")
+
+async def configurar_presupuesto(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("💰 Funcionalidad de presupuesto en desarrollo")
 
 def main():
     TOKEN = os.getenv('BOT_TOKEN')
