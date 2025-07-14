@@ -1,4 +1,3 @@
-
 import os
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler
@@ -17,8 +16,6 @@ logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("telegram.ext").setLevel(logging.DEBUG)
 
-logger = logging.getLogger(__name__)
-
 def main():
     TOKEN = os.getenv('BOT_TOKEN')
     if not TOKEN:
@@ -26,6 +23,7 @@ def main():
         return
 
     logger.info("🔧 Iniciando bot modularizado...")
+    logger.info(f"Token configurado: {TOKEN[:10]}...")  # Solo mostrar primeros 10 chars
 
     try:
         bot = ExpenseBot()
@@ -75,12 +73,15 @@ def main():
         application.add_handler(CommandHandler("resumen", generar_resumen))
         application.add_handler(CommandHandler("help", lambda u, c: u.message.reply_text("Comandos disponibles: /gasto /rapido /resumen /modo")))
 
-
         logger.info("🚀 Bot listo y corriendo...")
+        logger.info("🔗 Iniciando polling...")
         application.run_polling()
 
-    # --- ESTE ES EL BLOQUE QUE FALTABA ---
     except Exception as e:
         logger.error(f"❌ Error al iniciar el bot: {e}")
         import traceback
         traceback.print_exc()
+
+# ¡ESTO ES LO QUE FALTABA!
+if __name__ == "__main__":
+    main()
