@@ -1,3 +1,10 @@
+Sí, pero para hacerlo más rápido y seguro, aquí te dejo la versión final y completa de tu main.py con todas las correcciones que hicimos aplicadas.
+
+Simplemente reemplaza todo el contenido de tu archivo main.py con este código.
+
+## Archivo main.py Corregido
+Python
+
 import os
 import sys
 import logging
@@ -12,7 +19,7 @@ os.chdir(current_dir)
 sys.path.insert(0, current_dir)
 
 # Importaciones directas con nombres en minúsculas
-from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_monto, recibir_metodo_pago
+from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria, recibir_subcategoria, recibir_monto
 from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
 from handlers.ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
 from handlers.modo import cambiar_modo, procesar_cambio_modo
@@ -20,7 +27,7 @@ from handlers.resumen import generar_resumen
 from handlers.recordatorios import RecordatorioManager, toggle_recordatorios, configurar_presupuesto
 from datetime import datetime
 
-# Estados de conversación
+# Estados de conversación (CORREGIDO)
 DESCRIPCION, CATEGORIA, SUBCATEGORIA, MONTO, METODO_PAGO = range(5)
 GASTO_RAPIDO, METODO_PAGO_RAPIDO = range(2)
 INGRESO_RAPIDO, MONTO_INGRESO = range(2)
@@ -34,21 +41,13 @@ logging.getLogger("telegram.ext").setLevel(logging.INFO)
 
 async def post_init(application: Application):
     """Tareas que se ejecutan después de que el bot se inicializa pero antes de que empiece a recibir mensajes."""
-    # Inicializar y arrancar el sistema de recordatorios
     recordatorio_manager = RecordatorioManager(application)
     application.create_task(recordatorio_manager.loop_recordatorios())
 
 # Función para cancelar conversaciones
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "❌ Operación cancelada. Comandos disponibles:\n\n"
-        "💸 /gasto - Registrar gasto detallado\n"
-        "⚡ /rapido - Gasto rápido\n"
-        "💰 /ingreso - Registrar ingreso\n"
-        "📊 /resumen - Ver resumen del mes\n"
-        "🎭 /modo - Cambiar personalidad\n"
-        "🔔 /recordatorios - Activar/desactivar recordatorios\n"
-        "💰 /presupuesto - Info sobre presupuestos",
+        "❌ Operación cancelada.",
         reply_markup=ReplyKeyboardRemove()
     )
     context.user_data.clear()
@@ -68,13 +67,7 @@ async def ayuda_extendida(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "💰 /presupuesto - Configurar alertas\n\n"
         "*Otros:*\n"
         "❌ /cancel - Cancelar operación\n"
-        "❓ /help - Ver esta ayuda\n\n"
-        "*Funcionalidades:*\n"
-        "• Alertas de presupuesto por categoría\n"
-        "• Actualización automática del presupuesto\n"
-        "• Recordatorios a las 13:00 y 22:00\n"
-        "• Tres modos de personalidad\n"
-        "• Integración completa con Google Sheets"
+        "❓ /help - Ver esta ayuda"
     )
     await update.message.reply_text(mensaje, parse_mode='Markdown')
 
@@ -84,7 +77,8 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
     bot = context.bot_data['bot']
     user_id = update.effective_user.id
 
-    if metodo not in ['💵 Efectivo', '💳 Débito']:
+    metodos_validos = [item for sublist in bot.metodos_pago for item in sublist]
+    if metodo not in metodos_validos:
         from telegram import ReplyKeyboardMarkup
         reply_markup = ReplyKeyboardMarkup(bot.metodos_pago, one_time_keyboard=True, resize_keyboard=True)
         await update.message.reply_text("❌ Método no válido. Seleccioná uno correcto:", reply_markup=reply_markup)
@@ -92,25 +86,22 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
 
     desc = context.user_data['descripcion']
     cat = context.user_data['categoria']
+    subcat = context.user_data.get('subcategoria', '')
     monto = context.user_data['monto']
 
-    # Guardar el gasto
-    bot.guardar_gasto(desc, cat, monto, metodo)
+    bot.guardar_gasto(desc, cat, subcat, monto, metodo)
     
-    # Verificar presupuesto y obtener alerta si corresponde
     alerta_presupuesto = await bot.verificar_presupuesto(cat, user_id)
     
-    fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
+    fecha = datetime.now().strftime("%d/%m/%Y")
     mensaje_personalizado = bot.get_message(user_id, 'success_gasto')
 
-    # Construir mensaje final
     texto_final = (
         f"✅ ¡Gasto registrado!\n\n"
-        f"📅 {fecha}\n📝 {desc}\n📂 {cat}\n💰 {bot.formatear_pesos(monto)}\n💳 {metodo}\n\n"
+        f"📅 {fecha}\n📝 {desc}\n📂 {cat} -> {subcat}\n💰 {bot.formatear_pesos(monto)}\n💳 {metodo}\n\n"
         f"{mensaje_personalizado}\n\n"
     )
     
-    # Agregar alerta de presupuesto si existe
     if alerta_presupuesto:
         texto_final += f"{alerta_presupuesto}\n\n"
     
@@ -121,8 +112,6 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
     context.user_data.clear()
     return ConversationHandler.END
 
-# Funciones placeholder para configuración (hasta que tengas el archivo)
-
 
 def main():
     TOKEN = os.getenv('BOT_TOKEN')
@@ -131,7 +120,6 @@ def main():
         return
 
     logger.info("🔧 Iniciando bot modularizado...")
-    logger.info(f"Token configurado: {TOKEN[:10]}...")
 
     try:
         bot = ExpenseBot()
@@ -139,27 +127,19 @@ def main():
 
         application = Application.builder().token(TOKEN).post_init(post_init).build()
         application.bot_data['bot'] = bot
-
         
-        # Handler: gasto paso a paso (con alertas de presupuesto y subcategorías)
         gasto_handler = ConversationHandler(
             entry_points=[CommandHandler('gasto', iniciar_gasto)],
             states={
                 DESCRIPCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_descripcion)],
                 CATEGORIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_categoria)],
-
-                # --- CORRECCIÓN 1: AÑADIR EL ESTADO SUBCATEGORIA ---
                 SUBCATEGORIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_subcategoria)],
-
                 MONTO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_monto)],
-
-                # --- CORRECCIÓN 2: USAR LA FUNCIÓN CON ALERTA ---
                 METODO_PAGO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_metodo_pago_con_alerta)],
             },
             fallbacks=[CommandHandler('cancel', cancel)]
         )
 
-        # Handler: gasto rápido
         rapido_handler = ConversationHandler(
             entry_points=[CommandHandler('rapido', iniciar_gasto_rapido)],
             states={
@@ -169,7 +149,6 @@ def main():
             fallbacks=[CommandHandler('cancel', cancel)]
         )
 
-        # Handler: ingresos rápidos
         ingreso_handler = ConversationHandler(
             entry_points=[CommandHandler('ingreso', iniciar_ingreso_rapido)],
             states={
@@ -179,7 +158,6 @@ def main():
             fallbacks=[CommandHandler('cancel', cancel)]
         )
 
-        # Handler: cambio de modo
         modo_handler = ConversationHandler(
             entry_points=[CommandHandler('modo', cambiar_modo)],
             states={
@@ -188,23 +166,17 @@ def main():
             fallbacks=[CommandHandler('cancel', cancel)]
         )
 
-        # Registro de handlers
         application.add_handler(gasto_handler)
         application.add_handler(rapido_handler)
         application.add_handler(ingreso_handler)
         application.add_handler(modo_handler)
-
-        # Comandos simples
         application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("🤖 Bot de gastos iniciado. Usa /help para ver comandos.")))
         application.add_handler(CommandHandler("resumen", generar_resumen))
         application.add_handler(CommandHandler("help", ayuda_extendida))
-        application.add_handler(CommandHandler("cancel", cancel))
         application.add_handler(CommandHandler("recordatorios", toggle_recordatorios))
         application.add_handler(CommandHandler("presupuesto", configurar_presupuesto))
 
         logger.info("🚀 Bot listo y corriendo...")
-        logger.info("🔗 Iniciando polling...")
-        
         application.run_polling()
 
     except Exception as e:
