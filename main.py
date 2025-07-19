@@ -17,8 +17,7 @@ from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesa
 from handlers.ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
 from handlers.modo import cambiar_modo, procesar_cambio_modo
 from handlers.resumen import generar_resumen
-from handlers.recordatorios import RecordatorioManager
-
+from handlers.recordatorios import RecordatorioManager, toggle_recordatorios, configurar_presupuesto
 from datetime import datetime
 
 # Estados de conversación
@@ -123,11 +122,7 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
     return ConversationHandler.END
 
 # Funciones placeholder para configuración (hasta que tengas el archivo)
-async def toggle_recordatorios(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔔 Funcionalidad de recordatorios en desarrollo")
 
-async def configurar_presupuesto(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("💰 Funcionalidad de presupuesto en desarrollo")
 
 def main():
     TOKEN = os.getenv('BOT_TOKEN')
@@ -145,16 +140,20 @@ def main():
         application = Application.builder().token(TOKEN).post_init(post_init).build()
         application.bot_data['bot'] = bot
 
-        # Inicializar sistema de recordatorios
-        recordatorio_manager = RecordatorioManager(application)
         
-        # Handler: gasto paso a paso (con alertas de presupuesto)
+        # Handler: gasto paso a paso (con alertas de presupuesto y subcategorías)
         gasto_handler = ConversationHandler(
             entry_points=[CommandHandler('gasto', iniciar_gasto)],
             states={
                 DESCRIPCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_descripcion)],
                 CATEGORIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_categoria)],
+
+                # --- CORRECCIÓN 1: AÑADIR EL ESTADO SUBCATEGORIA ---
+                SUBCATEGORIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_subcategoria)],
+
                 MONTO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_monto)],
+
+                # --- CORRECCIÓN 2: USAR LA FUNCIÓN CON ALERTA ---
                 METODO_PAGO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_metodo_pago_con_alerta)],
             },
             fallbacks=[CommandHandler('cancel', cancel)]

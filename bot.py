@@ -34,19 +34,26 @@ class ExpenseBot:
         self.sheet_topes = spreadsheet.worksheet('Topes')
         self.sheet_presupuesto = spreadsheet.worksheet('Presupuesto')  # Nueva hoja
 
-        self.categorias = [
-            ['🍖 Comida', '🚗 Auto', '☕ Facultad'],
-            ['🏠 Casa', '💊 Farmacia', '🍟 Delivery'],
-            ['🍻 Salidas', '🎮 Gustos', '☢ Coca-Cola'],
-            ['💵 Efectivo', '🍫 De Mas', '🍕 Comida Job'],
-        ]
+        self.categorias = {
+            '🍖 Comida': ['🛒 Supermercado', '🍜 Chino', '🍑 Verduleria', '🥩 Carniceria', '🚲 Market', '🍱 Vianda'],
+            '🏠 Casa': ['📦 Deco', '🔨 Ferreteria'],
+            '🚗 Auto': ['⛽ Nafta', '🅿️ Estacionamiento', '🛡️ Seguro', '🔧Mantenimiento'],
+            '🎈 Lujitos': ['🎮 Videojuegos', '📚 Libros', '🎬 Cine', '🍻 Birritas'],
+            '💆‍♂️ Cuidados':['💊 Farmacia', '🍌 Nutri', '♿ Psico', '💇‍♂️ Peluqueria'],
+            '☢ Excesos': ['🍟 Delivery', '🍫 Boludeces', '🥤 Coquita', '🥐 Panaderia'],
+            '👕 Indumentaria': ['👔 Ropa', '👟 Zapatillas', '👓 Accesorios'],
+        }
 
-        self.metodos_pago = [['💵 Efectivo', '💳 Débito']]
+        self.metodos_pago = [
+            ['💵 Efectivo', '🐕 Cuenta DNI'],
+            ['🏦 BBVA Crédito', '🏦 BBVA Débito'],
+            ['📱 Modo/MP', '💸 Transferencia']
+        ]
 
         self.gastos_rapidos = {
             '☕ Café': {'descripcion': 'Café Facu', 'categoria': '☕ Facultad', 'monto': 1000},
             '☢ Coquita 175': {'descripcion': 'Coca-cola 175', 'categoria': '☢ Coca-Cola', 'monto': 2900},
-            '☢ Coquita 225': {'descripcion': 'Coca-cola 225', 'categoria': '☢ Coca-Cola', 'monto': 3500},
+            '☢ Coquita 225': {'descripcion': 'Coca-cola 225', 'categoria': '☢ Coca-Cola', 'monto': 4000},
         }
 
         # Nuevos ingresos rápidos
@@ -64,28 +71,28 @@ class ExpenseBot:
             'estricto': {
                 'name': '😤 Estricto',
                 'messages': {
-                    'start_gasto': "💸 ¿Otra vez gastando? ¡Necesitas controlar tus finanzas!",
-                    'success_gasto': "✅ Gasto registrado. Espero que haya sido necesario.",
+                    'start_gasto': "💸 EY EY EY, ...ya arrancamos ?",
+                    'success_gasto': "✅ Ya guarde el gasto. No nos pasemos de lo que planeamos.",
                     'budget_warning': "⚠️ ¡CUIDADO! Ya gastaste mucho en esta categoría.",
-                    'budget_exceeded': "🚨 ¡LÍMITE SUPERADO! Deberías parar de gastar en esto.",
+                    'budget_exceeded': "🚨 ¡LÍMITE SUPERADO! Afloja con la tarjeta que no llegamos a Japon.",
                 }
             },
             'motivador': {
                 'name': '💪 Motivador',
                 'messages': {
                     'start_gasto': "💸 ¡Perfecto! Registremos este gasto.",
-                    'success_gasto': "✅ ¡Excelente! ¡Sigue así!",
-                    'budget_warning': "💪 ¡Vas bien! Pero cuidado con esta categoría.",
-                    'budget_exceeded': "🎯 Superaste el límite, pero sé que puedes controlarlo.",
+                    'success_gasto': "✅ ¡Excelente! Para hacer un habito hay que mantenerlo",
+                    'budget_warning': "💪 Ojo, pensa cuidadosamente si necesitamos mas de esto.",
+                    'budget_exceeded': "🎯 Superaste el límite, enfocate en otra cosa.",
                 }
             },
             'comprensivo': {
                 'name': '🤗 Comprensivo',
                 'messages': {
-                    'start_gasto': "💸 Entiendo que a veces necesitamos gastar.",
-                    'success_gasto': "✅ Perfecto, lo importante es que lo estés registrando.",
-                    'budget_warning': "🤗 Te aviso que ya gastaste bastante en esta categoría.",
-                    'budget_exceeded': "😌 Superaste el presupuesto, pero todo está bien.",
+                    'start_gasto': "💸 Ya fue, para algo trabajamos.",
+                    'success_gasto': "✅ Perfecto, si esta registrado lo podemos modificar.",
+                    'budget_warning': "🤗 Te aviso que ya gastamos bastante en esta categoría.",
+                    'budget_exceeded': "😌 Superaste el presupuesto, a la verga.",
                 }
             }
         }
@@ -98,9 +105,10 @@ class ExpenseBot:
         s = s.replace(',', 'X').replace('.', ',').replace('X', '.')
         return f"${s}"
 
-    def guardar_gasto(self, descripcion, categoria, monto, metodo_pago):
+    def guardar_gasto(self, descripcion, categoria, subcategoria, monto, metodo_pago):
         fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
-        self.sheet_gastos.append_row([fecha, descripcion, categoria, monto, metodo_pago])
+        # El orden debe coincidir con tus columnas en Google Sheets
+        self.sheet_gastos.append_row([fecha, descripcion, categoria, subcategoria, monto, metodo_pago])
 
     def guardar_ingreso(self, descripcion, categoria, monto):
         fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
