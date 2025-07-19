@@ -16,10 +16,7 @@ async def generar_resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             locale.setlocale(locale.LC_TIME, 'es_AR.UTF-8')
         except locale.Error:
-            try:
-                locale.setlocale(locale.LC_TIME, 'C.UTF-8')
-            except locale.Error:
-                pass  # Usar locale por defecto
+            pass
     
     await context.bot.send_message(chat_id=chat_id, text="📊 Analizando tus gastos... Un momento.")
 
@@ -33,10 +30,12 @@ async def generar_resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
         headers = list_of_lists.pop(0)
         df = pd.DataFrame(list_of_lists, columns=headers)
         
+        # Corrección de formato de monto y fecha
         df['Monto'] = df['Monto'].str.replace(',', '.', regex=False)
         df['Monto'] = pd.to_numeric(df['Monto'], errors='coerce')
         
-        df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y %H:%M')
+        # --- LÍNEA MODIFICADA ---
+        df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y', dayfirst=True)
 
         mes_actual = datetime.now().month
         año_actual = datetime.now().year
@@ -49,13 +48,13 @@ async def generar_resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
         resumen_por_categoria = df_mes_actual.groupby('Categoría')['Monto'].sum().sort_values(ascending=False)
         total_gastado = df_mes_actual['Monto'].sum()
 
-        # Obtener nombre del mes de forma más robusta
+        # Obtener nombre del mes
         try:
             nombre_mes = datetime.now().strftime('%B').capitalize()
         except:
-            meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-                    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
-            nombre_mes = meses[datetime.now().month - 1].capitalize()
+            meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+            nombre_mes = meses[datetime.now().month - 1]
 
         mensaje = f"📊 *Resumen de Gastos de {nombre_mes}*\n\n"
         
