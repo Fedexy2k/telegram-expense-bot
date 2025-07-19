@@ -21,7 +21,7 @@ from handlers.recordatorios import RecordatorioManager, toggle_recordatorios, co
 from datetime import datetime
 
 # Estados de conversación
-DESCRIPCION, CATEGORIA, MONTO, METODO_PAGO = range(4)
+DESCRIPCION, CATEGORIA, SUBCATEGORIA, MONTO, METODO_PAGO = range(5)
 GASTO_RAPIDO, METODO_PAGO_RAPIDO = range(2)
 INGRESO_RAPIDO, MONTO_INGRESO = range(2)
 CAMBIAR_MODO = 6
