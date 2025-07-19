@@ -103,7 +103,7 @@ async def recibir_metodo_pago(update: Update, context: ContextTypes.DEFAULT_TYPE
     monto = context.user_data['monto']
 
     bot.guardar_gasto(desc, cat, subcat, monto, metodo)
-    fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
+    fecha = datetime.now().strftime("%d/%m/%Y")
     mensaje_personalizado = bot.get_message(user_id, 'success_gasto')
 
     # Mensaje final SIN botones

@@ -51,9 +51,24 @@ class ExpenseBot:
         ]
 
         self.gastos_rapidos = {
-            '☕ Café': {'descripcion': 'Café Facu', 'categoria': '☕ Facultad', 'monto': 1000},
-            '☢ Coquita 175': {'descripcion': 'Coca-cola 175', 'categoria': '☢ Coca-Cola', 'monto': 2900},
-            '☢ Coquita 225': {'descripcion': 'Coca-cola 225', 'categoria': '☢ Coca-Cola', 'monto': 4000},
+            '☕ Café': {
+                'descripcion': 'Café Facu', 
+                'categoria': '🎈 Lujitos', 
+                'subcategoria': '☕ Facultad', # <- NUEVO
+                'monto': 1000
+            },
+            '☢ Coquita 175': {
+                'descripcion': 'Coca-cola 175', 
+                'categoria': '☢ Excesos', 
+                'subcategoria': '🥤 Coquita', # <- NUEVO
+                'monto': 2900
+            },
+            '☢ Coquita 225': {
+                'descripcion': 'Coca-cola 225', 
+                'categoria': '☢ Excesos', 
+                'subcategoria': '🥤 Coquita', # <- NUEVO
+                'monto': 4000
+            },
         }
 
         # Nuevos ingresos rápidos
@@ -106,12 +121,12 @@ class ExpenseBot:
         return f"${s}"
 
     def guardar_gasto(self, descripcion, categoria, subcategoria, monto, metodo_pago):
-        fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
+        fecha = datetime.now().strftime("%d/%m/%Y")
         # El orden debe coincidir con tus columnas en Google Sheets
         self.sheet_gastos.append_row([fecha, descripcion, categoria, subcategoria, monto, metodo_pago])
 
     def guardar_ingreso(self, descripcion, categoria, monto):
-        fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
+        fecha = datetime.now().strftime("%d/%m/%Y")
         self.sheet_ingresos.append_row([fecha, descripcion, categoria, monto])
 
     async def actualizar_presupuesto(self, monto_ingreso):

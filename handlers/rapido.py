@@ -51,22 +51,32 @@ async def procesar_metodo_pago_rapido(update: Update, context: ContextTypes.DEFA
     bot = context.bot_data['bot']
     gasto = context.user_data.get('gasto_rapido')
 
-    if metodo not in ['💵 Efectivo', '💳 Débito']:
+    metodos_validos = [item for sublist in bot.metodos_pago for item in sublist]
+    if metodo not in metodos_validos:
         reply_markup = ReplyKeyboardMarkup(bot.metodos_pago, one_time_keyboard=True, resize_keyboard=True)
         await update.message.reply_text("❌ Método no válido. Seleccioná uno correcto:", reply_markup=reply_markup)
         return METODO_PAGO_RAPIDO
 
-    bot.guardar_gasto(gasto['descripcion'], gasto['categoria'], gasto['monto'], metodo)
-    fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
+    # --- INICIO DE LA CORRECCIÓN ---
+    # Ahora pasamos la subcategoría desde el diccionario del gasto rápido
+    bot.guardar_gasto(
+        gasto['descripcion'],
+        gasto['categoria'],
+        gasto['subcategoria'], # <- AHORA SÍ LA USAMOS
+        gasto['monto'],
+        metodo
+    )
+    # --- FIN DE LA CORRECCIÓN ---
 
-    # Mensaje final SIN botones
+    fecha = datetime.now().strftime("%d/%m/%Y")
+
     texto_final = (
         f"⚡ ¡Gasto rápido registrado!\n\n"
-        f"📅 {fecha}\n📝 {gasto['descripcion']}\n📂 {gasto['categoria']}\n"
+        f"📅 {fecha}\n📝 {gasto['descripcion']}\n📂 {gasto['categoria']} -> {gasto['subcategoria']}\n"
         f"💰 {bot.formatear_pesos(gasto['monto'])}\n💳 {metodo}\n\n"
         "Para continuar, usa: /gasto, /rapido, /resumen, /modo"
     )
     await update.message.reply_text(texto_final, reply_markup=ReplyKeyboardRemove())
-    
+
     context.user_data.clear()
     return ConversationHandler.END
