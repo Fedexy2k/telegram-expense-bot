@@ -42,6 +42,7 @@ class ExpenseBot:
         self.sheet_gastos = spreadsheet.worksheet('Gastos')
         self.sheet_ingresos = spreadsheet.worksheet('Ingresos')
         self.sheet_presupuesto_bot = spreadsheet.worksheet('PresupuestoBot')
+        self.sheet_ahorros = spreadsheet.worksheet('Ahorros')
 
         # --- Atributos para el Caché ---
         self.df_gastos = None
@@ -92,6 +93,13 @@ class ExpenseBot:
     async def guardar_ingreso(self, descripcion, categoria, monto):
         fecha = datetime.now().strftime("%d/%m/%Y")
         self.sheet_ingresos.append_row([fecha, descripcion, categoria, monto])
+    
+    async def guardar_ahorro(self, monto_pesos, destino, monto_dolares=0):
+        """Guarda un registro de ahorro en la hoja 'Ahorros'."""
+        fecha = datetime.now().strftime("%d/%m/%Y")
+        # El orden debe coincidir con las columnas que creaste
+        fila = [fecha, monto_pesos, destino, monto_dolares]
+        self.sheet_ahorros.append_row(fila)
 
     async def obtener_presupuesto_categoria(self, categoria_o_subcategoria: str) -> float:
         await self._cargar_datos()

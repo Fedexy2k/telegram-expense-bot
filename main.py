@@ -16,6 +16,10 @@ from handlers.gasto import iniciar_gasto, recibir_descripcion, recibir_categoria
 from handlers.rapido import iniciar_gasto_rapido, procesar_gasto_rapido, procesar_metodo_pago_rapido
 from handlers.ingresos import iniciar_ingreso_rapido, procesar_ingreso_rapido, procesar_monto_ingreso
 from handlers.modo import cambiar_modo, procesar_cambio_modo
+from handlers.ahorro import (
+    iniciar_ahorro, recibir_monto_ahorro, recibir_destino_ahorro, recibir_monto_dolares,
+    MONTO_AHORRO, DESTINO_AHORRO, MONTO_DOLARES
+)
 from handlers.resumen import generar_resumen
 from handlers.recordatorios import RecordatorioManager, toggle_recordatorios, configurar_presupuesto
 from datetime import datetime
@@ -82,7 +86,7 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
     subcat = context.user_data.get('subcategoria', '')
     monto = context.user_data['monto']
 
-    bot.guardar_gasto(desc, cat, subcat, monto, metodo)
+    await bot.guardar_gasto(desc, cat, subcat, monto, metodo)
     
     # Ahora pasamos la categoría, la subcategoría y el user_id
     alerta_presupuesto = await bot.verificar_presupuesto(cat, subcat, user_id)
@@ -159,11 +163,21 @@ def main():
             },
             fallbacks=[CommandHandler('cancel', cancel)]
         )
+        ahorro_handler = ConversationHandler(
+            entry_points=[CommandHandler('ahorro', iniciar_ahorro)],
+            states={
+                MONTO_AHORRO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_monto_ahorro)],
+                DESTINO_AHORRO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_destino_ahorro)],
+                MONTO_DOLARES: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_monto_dolares)],
+            },
+            fallbacks=[CommandHandler('cancel', cancel)]
+        )
 
         application.add_handler(gasto_handler)
         application.add_handler(rapido_handler)
         application.add_handler(ingreso_handler)
         application.add_handler(modo_handler)
+        application.add_handler(ahorro_handler)
         application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("🤖 Bot de gastos iniciado. Usa /help para ver comandos.")))
         application.add_handler(CommandHandler("resumen", generar_resumen))
         application.add_handler(CommandHandler("help", ayuda_extendida))
