@@ -9,7 +9,7 @@ async def generar_resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     bot = context.bot_data['bot']
     
-    # Configurar locale de forma más robusta
+    # ... (El código de locale se mantiene igual) ...
     try:
         locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
     except locale.Error:
@@ -17,25 +17,17 @@ async def generar_resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
             locale.setlocale(locale.LC_TIME, 'es_AR.UTF-8')
         except locale.Error:
             pass
-    
+
     await context.bot.send_message(chat_id=chat_id, text="📊 Analizando tus gastos... Un momento.")
 
     try:
-        list_of_lists = bot.sheet_gastos.get_all_values()
-        
-        if len(list_of_lists) < 2:
+        ### MODIFICADO: Usamos el sistema de caché ###
+        await bot._cargar_datos() # Aseguramos que los datos estén cargados
+        df = bot.df_gastos
+
+        if df is None or df.empty:
             await context.bot.send_message(chat_id=chat_id, text="🤔 Aún no tienes gastos registrados.")
             return
-
-        headers = list_of_lists.pop(0)
-        df = pd.DataFrame(list_of_lists, columns=headers)
-        
-        # Corrección de formato de monto y fecha
-        df['Monto'] = df['Monto'].str.replace(',', '.', regex=False)
-        df['Monto'] = pd.to_numeric(df['Monto'], errors='coerce')
-        
-        # --- LÍNEA MODIFICADA ---
-        df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y', dayfirst=True)
 
         mes_actual = datetime.now().month
         año_actual = datetime.now().year
@@ -48,7 +40,7 @@ async def generar_resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
         resumen_por_categoria = df_mes_actual.groupby('Categoría')['Monto'].sum().sort_values(ascending=False)
         total_gastado = df_mes_actual['Monto'].sum()
 
-        # Obtener nombre del mes
+        # ... (El resto del código para generar el mensaje se mantiene igual) ...
         try:
             nombre_mes = datetime.now().strftime('%B').capitalize()
         except:
