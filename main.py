@@ -84,7 +84,8 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
 
     bot.guardar_gasto(desc, cat, subcat, monto, metodo)
     
-    alerta_presupuesto = await bot.verificar_presupuesto(cat, user_id)
+    # Ahora pasamos la categoría, la subcategoría y el user_id
+    alerta_presupuesto = await bot.verificar_presupuesto(cat, subcat, user_id)
     
     fecha = datetime.now().strftime("%d/%m/%Y")
     mensaje_personalizado = bot.get_message(user_id, 'success_gasto')

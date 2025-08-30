@@ -1,0 +1,73 @@
+{
+  "categorias": {
+    "🍖 Comida": ["🛒 Supermercado", "🍜 Chino", "🍑 Verduleria", "🥩 Carniceria", "🚲 Market", "🍱 Vianda"],
+    "🏠 Casa": ["📦 Deco", "🔨 Ferreteria"],
+    "🚗 Auto": ["⛽ Nafta", "🅿️ Estacionamiento", "🛡️ Seguro", "🔧Mantenimiento"],
+    "🎈 Lujitos": ["🎮 Videojuegos", "📚 Libros", "🎬 Cine", "🍻 Birritas", "☕ Facultad"],
+    "💆‍♂️ Cuidados": ["💊 Farmacia", "🍌 Nutri", "♿ Psico", "💇‍♂️ Peluqueria"],
+    "☢ Excesos": ["🍟 Delivery", "🍫 Boludeces", "🥤 Coquita", "🥐 Panaderia"],
+    "👕 Indumentaria": ["👔 Ropa", "👟 Zapatillas", "👓 Accesorios"]
+  },
+  "metodos_pago": [
+    ["💵 Efectivo", "🐕 Cuenta DNI"],
+    ["🏦 BBVA Crédito", "🏦 BBVA Débito"],
+    ["📱 Modo/MP", "💸 Transferencia"]
+  ],
+  "gastos_rapidos": {
+    "☕ Café": {
+      "descripcion": "Café Facu",
+      "categoria": "🎈 Lujitos",
+      "subcategoria": "☕ Facultad",
+      "monto": 1000
+    },
+    "☢ Coquita 175": {
+      "descripcion": "Coca-cola 175",
+      "categoria": "☢ Excesos",
+      "subcategoria": "🥤 Coquita",
+      "monto": 2900
+    },
+    "☢ Coquita 225": {
+      "descripcion": "Coca-cola 225",
+      "categoria": "☢ Excesos",
+      "subcategoria": "🥤 Coquita",
+      "monto": 4000
+    }
+  },
+  "ingresos_rapidos": {
+    "💼 Sueldo": {"categoria": "💼 Trabajo"},
+    "💰 Préstamo": {"categoria": "💰 Préstamo"},
+    "🔄 Devolución": {"categoria": "🔄 Devolución"},
+    "🎁 Regalo": {"categoria": "🎁 Regalo"},
+    "💳 Reintegro": {"categoria": "💳 Reintegro"},
+    "📈 Venta": {"categoria": "📈 Venta"}
+  },
+  "personality_modes": {
+    "estricto": {
+      "name": "😤 Estricto",
+      "messages": {
+        "start_gasto": "💸 EY EY EY, ...ya arrancamos ?",
+        "success_gasto": "✅ Ya guarde el gasto. No nos pasemos de lo que planeamos.",
+        "budget_warning": "¡CUIDADO! Ya gastaste mucho en esto.",
+        "budget_exceeded": "¡LÍMITE SUPERADO! Afloja con la tarjeta que no llegamos a Japon."
+      }
+    },
+    "motivador": {
+      "name": "💪 Motivador",
+      "messages": {
+        "start_gasto": "💸 ¡Perfecto! Registremos este gasto.",
+        "success_gasto": "✅ ¡Excelente! Para hacer un habito hay que mantenerlo",
+        "budget_warning": "Ojo, pensa cuidadosamente si necesitamos mas de esto.",
+        "budget_exceeded": "Superaste el límite, enfocate en otra cosa."
+      }
+    },
+    "comprensivo": {
+      "name": "🤗 Comprensivo",
+      "messages": {
+        "start_gasto": "💸 Ya fue, para algo trabajamos.",
+        "success_gasto": "✅ Perfecto, si esta registrado lo podemos modificar.",
+        "budget_warning": "Te aviso que ya gastamos bastante en esto.",
+        "budget_exceeded": "Superaste el presupuesto, a la verga."
+      }
+    }
+  }
+}
