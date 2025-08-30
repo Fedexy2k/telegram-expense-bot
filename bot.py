@@ -109,7 +109,14 @@ class ExpenseBot:
         presupuesto_fila = self.df_presupuesto[self.df_presupuesto['Categoria'] == categoria_o_subcategoria]
         
         if not presupuesto_fila.empty:
-            return float(presupuesto_fila['Presupuesto'].iloc[0])
+            try:
+                # Intentamos convertir el presupuesto a un número.
+                # Si está vacío o es un texto, el 'except' lo capturará.
+                valor_presupuesto = presupuesto_fila['Presupuesto'].iloc[0]
+                return float(valor_presupuesto)
+            except (ValueError, TypeError):
+                # Si falla la conversión, asumimos 0.
+                return 0.0
         return 0.0
 
     async def verificar_presupuesto(self, categoria, subcategoria, user_id):

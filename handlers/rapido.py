@@ -59,10 +59,10 @@ async def procesar_metodo_pago_rapido(update: Update, context: ContextTypes.DEFA
 
     # --- INICIO DE LA CORRECCIÓN ---
     # Ahora pasamos la subcategoría desde el diccionario del gasto rápido
-    bot.guardar_gasto(
+    await bot.guardar_gasto(
         gasto['descripcion'],
         gasto['categoria'],
-        gasto['subcategoria'], # <- AHORA SÍ LA USAMOS
+        gasto['subcategoria'], 
         gasto['monto'],
         metodo
     )
