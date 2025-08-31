@@ -1,4 +1,4 @@
-# main.py
+# main.py (Corregido)
 import os
 import sys
 import logging
@@ -48,11 +48,9 @@ menu_markup = ReplyKeyboardMarkup(menu_keyboard, resize_keyboard=True)
 # --- Funciones Principales ---
 async def post_init(application: Application):
     """Tareas post-inicialización: configurar menú y recordatorios."""
-    # Configurar recordatorios
     recordatorio_manager = RecordatorioManager(application)
     application.create_task(recordatorio_manager.loop_recordatorios())
     
-    # Configurar comandos y botón de menú
     commands = [
         ('start', '🚀 Inicia el bot y muestra el menú'),
         ('menu', '📖 Muestra el menú principal'),
@@ -109,7 +107,6 @@ async def recibir_metodo_pago_con_alerta(update: Update, context: ContextTypes.D
     metodos_validos = [item for sublist in bot.metodos_pago for item in sublist]
 
     if metodo not in metodos_validos:
-        # Re-mostrar teclado de métodos de pago si la opción es inválida
         reply_markup = ReplyKeyboardMarkup(bot.metodos_pago, one_time_keyboard=True, resize_keyboard=True)
         await update.message.reply_text("❌ Método no válido. Seleccioná uno correcto:", reply_markup=reply_markup)
         return METODO_PAGO
@@ -150,14 +147,11 @@ def main():
         bot = ExpenseBot()
         application = Application.builder().token(TOKEN).post_init(post_init).build()
         application.bot_data['bot'] = bot
-        application.bot_data['menu_markup'] = menu_markup # Guardar el menú para acceso global
+        application.bot_data['menu_markup'] = menu_markup
 
         # --- Definición de Handlers de Conversación ---
         gasto_handler = ConversationHandler(
-            entry_points=[
-                CommandHandler('gasto', iniciar_gasto),
-                MessageHandler(filters.Regex('^💸 Gasto$'), iniciar_gasto)
-            ],
+            entry_points=[CommandHandler('gasto', iniciar_gasto), MessageHandler(filters.Regex('^💸 Gasto$'), iniciar_gasto)],
             states={
                 DESCRIPCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_descripcion)],
                 CATEGORIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_categoria)],
@@ -167,19 +161,36 @@ def main():
             },
             fallbacks=[CommandHandler('cancel', cancel)]
         )
-        # (Se repite la misma lógica de entry_points para los otros handlers)
         rapido_handler = ConversationHandler(
             entry_points=[CommandHandler('rapido', iniciar_gasto_rapido), MessageHandler(filters.Regex('^⚡ Rápido$'), iniciar_gasto_rapido)],
-            states={...}, fallbacks=[...])
+            states={
+                GASTO_RAPIDO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_gasto_rapido)],
+                METODO_PAGO_RAPIDO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_metodo_pago_rapido)],
+            },
+            fallbacks=[CommandHandler('cancel', cancel)]
+        )
         ingreso_handler = ConversationHandler(
             entry_points=[CommandHandler('ingreso', iniciar_ingreso_rapido), MessageHandler(filters.Regex('^💰 Ingreso$'), iniciar_ingreso_rapido)],
-            states={...}, fallbacks=[...])
+            states={
+                INGRESO_RAPIDO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_ingreso_rapido)],
+                MONTO_INGRESO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_monto_ingreso)],
+            },
+            fallbacks=[CommandHandler('cancel', cancel)]
+        )
         ahorro_handler = ConversationHandler(
             entry_points=[CommandHandler('ahorro', iniciar_ahorro), MessageHandler(filters.Regex('^💹 Ahorro$'), iniciar_ahorro)],
-            states={...}, fallbacks=[...])
+            states={
+                MONTO_AHORRO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_monto_ahorro)],
+                DESTINO_AHORRO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_destino_ahorro)],
+                MONTO_DOLARES: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_monto_dolares)],
+            },
+            fallbacks=[CommandHandler('cancel', cancel)]
+        )
         modo_handler = ConversationHandler(
             entry_points=[CommandHandler('modo', cambiar_modo)],
-            states={...}, fallbacks=[...])
+            states={CAMBIAR_MODO: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_cambio_modo)]},
+            fallbacks=[CommandHandler('cancel', cancel)]
+        )
 
         # --- Añadir Handlers a la Aplicación ---
         application.add_handler(gasto_handler)
@@ -192,7 +203,6 @@ def main():
         application.add_handler(CommandHandler("menu", mostrar_menu))
         application.add_handler(CommandHandler("help", ayuda_extendida))
         
-        # Handlers para los botones del menú que no inician conversaciones
         application.add_handler(MessageHandler(filters.Regex('^📊 Resumen$'), generar_resumen))
         application.add_handler(MessageHandler(filters.Regex('^❓ Ayuda$'), ayuda_extendida))
         
