@@ -3,7 +3,9 @@ from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler
 from datetime import datetime
 
-INGRESO_RAPIDO, MONTO_INGRESO = range(2)
+# --- LÍNEA CORREGIDA ---
+# Los estados ahora coinciden con los definidos en main.py
+(INGRESO_RAPIDO, MONTO_INGRESO) = range(7, 9)
 
 async def iniciar_ingreso_rapido(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     bot = context.bot_data['bot']
@@ -30,9 +32,10 @@ async def iniciar_ingreso_rapido(update: Update, context: ContextTypes.DEFAULT_T
 async def procesar_ingreso_rapido(update: Update, context: ContextTypes.DEFAULT_TYPE):
     seleccion = update.message.text
     bot = context.bot_data['bot']
+    menu_markup = context.bot_data.get('menu_markup')
 
     if seleccion == '❌ Cancelar':
-        await update.message.reply_text("❌ Operación cancelada.", reply_markup=ReplyKeyboardRemove())
+        await update.message.reply_text("❌ Operación cancelada.", reply_markup=menu_markup)
         return ConversationHandler.END
 
     if seleccion in bot.ingresos_rapidos:
@@ -45,32 +48,31 @@ async def procesar_ingreso_rapido(update: Update, context: ContextTypes.DEFAULT_
         )
         return MONTO_INGRESO
     else:
-        await update.message.reply_text("❌ Selección no válida. Intenta de nuevo con /ingreso", reply_markup=ReplyKeyboardRemove())
+        await update.message.reply_text("❌ Selección no válida. Intenta de nuevo.", reply_markup=menu_markup)
         return ConversationHandler.END
 
 async def procesar_monto_ingreso(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         monto = float(update.message.text.replace(',', '.'))
         bot = context.bot_data['bot']
+        menu_markup = context.bot_data.get('menu_markup')
         
         tipo_ingreso = context.user_data['tipo_ingreso']
         categoria = context.user_data['categoria_ingreso']
         
-        # Guardar en hoja de ingresos
-        bot.guardar_ingreso(tipo_ingreso, categoria, monto)
+        await bot.guardar_ingreso(tipo_ingreso, categoria, monto)
         
-        # Actualizar presupuesto automáticamente
-        await bot.actualizar_presupuesto(monto)
+        # await bot.actualizar_presupuesto(monto) # Comentado por ahora
         
-        fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
+        fecha = datetime.now().strftime("%d/%m/%Y")
         
         texto_final = (
             f"✅ ¡Ingreso registrado!\n\n"
             f"📅 {fecha}\n💰 {tipo_ingreso}\n📂 {categoria}\n"
             f"💵 {bot.formatear_pesos(monto)}\n\n"
-            "Para continuar, usa: /gasto, /rapido, /ingreso, /resumen"
+            "Para continuar, usa /menu o elige una opción."
         )
-        await update.message.reply_text(texto_final, reply_markup=ReplyKeyboardRemove())
+        await update.message.reply_text(texto_final, reply_markup=menu_markup)
         
         context.user_data.clear()
         return ConversationHandler.END
